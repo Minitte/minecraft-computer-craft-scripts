@@ -3,6 +3,10 @@
 -- minSlotIndex/maxSlotIndex: the inventory indexs to place blocks with. (turtle api uses 1 based index. First slot is 1)
 local mode, width, height, minSlotIndex, maxSlotIndex = ...;
 
+width = tonumber(width);
+height = tonumber(height);
+minSlotIndex = tonumber(minSlotIndex);
+maxSlotIndex = tonumber(maxSlotIndex);
 
 -- mode names
 local modeWall = "wall";
@@ -93,6 +97,7 @@ local function ensureBlockSelected()
     local currentSlot = minSlotIndex;
     while (currentSlot <= maxSlotIndex) do
         if (turtle.getItemCount(currentSlot) > 1) then
+            turtle.select(currentSlot);
             return true;
         end
         currentSlot = currentSlot + 1;
@@ -130,7 +135,7 @@ end
 
 local function moveMode(movementMode, isAlternate)
     if (movementMode == modeWall) then
-        if (isAlternate) then
+        if (isAlternate == false) then
             if (moveUp() == false) then
                 return errorOut("movementMode", "Failed to move up");
             end
@@ -141,7 +146,7 @@ local function moveMode(movementMode, isAlternate)
         end
         
     elseif (movementMode == modeFloor or movementMode == modeFloor) then
-        if (isAlternate) then
+        if (isAlternate == false) then
             if (moveForward() == false) then
                 return errorOut("movementMode", "Failed to move forward");
             end
@@ -167,15 +172,17 @@ local function Run()
 
         -- fill in the column
         while (y < height) do
-            if (replaceBlock(mode)) then
-                return false
+            if (replaceBlock(mode) == false) then
+                return errorOut("Run", "Failed to replace block");
             end
 
             y = y + 1;
 
             -- if there are more spaces to move..
             if (y < height) then
-                moveMode(mode, isAlternate); 
+                if (moveMode(mode, isAlternate) == false) then
+                    return errorOut("Run", "Failed to move");
+                end
             end
         end
         
@@ -192,4 +199,6 @@ local function Run()
     return true;
 end
 
+logMsg("", "Starting build script.. " .. width .. " x " .. height);
 Run();
+logMsg("", "Finished build script.. ");
